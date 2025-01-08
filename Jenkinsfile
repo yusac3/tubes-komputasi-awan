@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+        DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1326547014049333308/ePZfvF0R57c31cmIOGeyAOVIl_DB1TtRO1Ff2cPlHh1QBQTEyXNNeN8oa_0azr0LkdJR"
         PIPELINE_NAME = "My Pipeline"
         JOB_NAME = env.JOB_NAME
         BUILD_URL = env.BUILD_URL
