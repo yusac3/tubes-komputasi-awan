@@ -1,66 +1,68 @@
 pipeline {
     agent any
-
     environment {
-        DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1326547014049333308/ePZfvF0R57c31cmIOGeyAOVIl_DB1TtRO1Ff2cPlHh1QBQTEyXNNeN8oa_0azr0LkdJR"
-        PIPELINE_NAME = "My Pipeline"
-        JOB_NAME = env.JOB_NAME
-        BUILD_URL = env.BUILD_URL
-        GIT_COMMIT = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-        GIT_AUTHOR = sh(script: 'git log -1 --pretty=format:"%an"', returnStdout: true).trim()
-        GIT_MESSAGE = sh(script: 'git log -1 --pretty=format:"%s"', returnStdout: true).trim()
+        DOCKER_IMAGE = 'my-docker-image'
+        
     }
 
     stages {
-        stage('Build') {
+    
+        stage('Checkout Code') {
             steps {
-                echo 'Building the project...'
-                // Simulate a build process
-                sh 'echo "Build process here"'
+                echo 'Checkout the Code...'
+                  git url: 
             }
         }
 
-        stage('Test') {
+
+
+        stage('Notify Discord') {
             steps {
-                echo 'Running tests...'
-                // Simulate test process
-                sh 'echo "Test process here"'
+                script {
+                    def message = [
+                        "content": "Pipeline berhasil",
+                        "embeds": [
+                            [
+                                "title": "docker build dan push",
+                                "description": "Image ${DOCKER_IMAGE} berhasil di push",
+                                "color": 3066993
+                            ]
+                        ]
+                    ]
+                    // Perhatikan penulisan url dan gunakan tanda kutip yang benar
+                    httpRequest(
+                        httpMode: 'POST',
+                        acceptType: 'APPLICATION_JSON',
+                        contentType: 'APPLICATION_JSON',
+                        requestBody: groovy.json.JsonOutput.toJson(message),
+                        url: 'https://discord.com/api/webhooks/1326547014049333308/ePZfvF0R57c31cmIOGeyAOVIl_DB1TtRO1Ff2cPlHh1QBQTEyXNNeN8oa_0azr0LkdJR'
+                    )
+                }
             }
         }
     }
-
     post {
-        success {
-            script {
-                sendDiscordNotification("SUCCESS")
-            }
-        }
         failure {
             script {
-                sendDiscordNotification("FAILURE")
+                def message = [
+                    "content": "Pipeline gagal",
+                    "embeds": [
+                        [
+                            "title": "Pipeline gagal",
+                            "description": "Terdapat kesalahan",
+                            "color": 15158332
+                        ]
+                    ]
+                ]
+                // Perhatikan penulisan url dan gunakan tanda kutip yang benar
+                httpRequest(
+                    httpMode: 'POST',
+                    acceptType: 'APPLICATION_JSON',
+                    contentType: 'APPLICATION_JSON',
+                    requestBody: groovy.json.JsonOutput.toJson(message),
+                    url: 'https://discord.com/api/webhooks/1326547014049333308/ePZfvF0R57c31cmIOGeyAOVIl_DB1TtRO1Ff2cPlHh1QBQTEyXNNeN8oa_0azr0LkdJR'
+                )
             }
         }
     }
-}
-
-def sendDiscordNotification(String status) {
-    def color = status == "SUCCESS" ? 3066993 : 15158332 // Green or Red
-    def statusText = status == "SUCCESS" ? "✅ **Success**" : "❌ **Failure**"
-
-    def message = """
-    {
-      "embeds": [
-        {
-          "title": "Pipeline Notification",
-          "description": "**Pipeline:** ${PIPELINE_NAME}\\n**Job:** ${JOB_NAME}\\n**Status:** ${statusText}\\n**Commit:** `${GIT_COMMIT}`\\n**Author:** ${GIT_AUTHOR}\\n**Message:** ${GIT_MESSAGE}\\n**Build URL:** [Click here](${BUILD_URL})",
-          "color": ${color},
-          "timestamp": "${new Date().format("yyyy-MM-dd'T'HH:mm:ss'Z'", TimeZone.getTimeZone('UTC'))}"
-        }
-      ]
-    }
-    """
-
-    sh """
-    curl -X POST -H "Content-Type: application/json" -d '${message}' "${DISCORD_WEBHOOK_URL}"
-    """
 }
