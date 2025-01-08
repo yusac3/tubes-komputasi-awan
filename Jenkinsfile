@@ -10,7 +10,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 echo 'Checkout the Code...'
-                  git url: 
+                  git url: 'https://github.com/yusac3/tubes-komputasi-awan.git', branch: 'main'
             }
         }
 
